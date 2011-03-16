@@ -3,60 +3,57 @@
 
 realname=p7zip
 pkgname=${realname}-gui
-pkgver=9.13
-pkgrel=2
+pkgver=9.20
+pkgrel=1+vad0
 pkgdesc="The GUI component of the P7Zip compression utility"
 arch=("i686" "x86_64")
 license=("GPL")
 url="http://${realname}.sourceforge.net"
 depends=("wxgtk" "${realname}=${pkgver}")
-makedepends=("make")
-optdepends=("q7z: A P7Zip GUI, which attempts to simplify data compression and backup")
+makedepends=("make" "yasm")
+optdepends=("j7z: An alternative 7-Zip GUI")
 options=(!emptydirs)
 source=(http://downloads.sourceforge.net/sourceforge/${realname}/${realname}_${pkgver}_src_all.tar.bz2)
 
 build() {
-	cd ${srcdir}/${realname}_${pkgver}
+	cd "${srcdir}"/${realname}_${pkgver}
 
-	#Arch64 fix
-	if [ "${CARCH}" == "x86_64" ]; then
-		cp makefile.linux_amd64 makefile.machine
-	else
-		cp makefile.linux_x86_ppc_alpha_gcc_4.X makefile.machine
-	fi
+	[[ $CARCH = x86_64 ]] \
+	&& cp makefile.linux_amd64_asm makefile.machine \
+	|| cp makefile.linux_x86_asm_gcc_4.X makefile.machine
 
-	# Build
 	make 7zG 7zFM OPTFLAGS="${CXXFLAGS}"
 }
 
 package() {
-	cd ${srcdir}/${realname}_${pkgver}
+	make -C "${srcdir}/${realname}_${pkgver}" install \
+		DEST_HOME=/usr DEST_DIR="${pkgdir}" \
+		DEST_MAN='$(DEST_HOME)/share/man'
 	
-	# The "make install" script does not install the GUI. Install it
-	# according to GUI/readme.txt.
-	local share="${pkgdir}/usr/lib/${realname}"
+	# Remove files belonging in the base package
+	rm "${pkgdir}/usr/lib/${realname}/7z.so"
+	cd "${pkgdir}/usr/share/man/man1"
+	rm 7z.1 7za.1 7zr.1
 	
-	mkdir -p "${pkgdir}/usr/bin"
-	local name
-	for name in 7zG 7zFM; do
-		install -m755 -D "bin/${name}" "${share}/${name}"
-		
-		# Wrapper scripts needed so that the program knows the real
-		# directory it's installed in. Symbolic links don't work.
-		cat << SH > "${pkgdir}/usr/bin/${name}"
-#! /bin/sh
-/usr/lib/${realname}/${name} "\$@"
-SH
-		chmod 755 "${pkgdir}/usr/bin/${name}"
-	done
-	
-	cp -r GUI/help "${pkgdir}/usr/lib/${realname}/"
-	find "${share}/help" -type d -exec chmod 755 {} ';'
-	find "${share}/help" -type f -exec chmod 644 {} ';'
-	
-	install -m755 -D GUI/${realname}ForFilemanager ${pkgdir}/usr/bin/${realname}ForFilemanager
-	install -m755 -D GUI/${realname}_16_ok.png ${pkgdir}/usr/share/icons/hicolor/16x16/apps/${realname}.png
-	ln -s 7zCon.sfx ${pkgdir}/usr/lib/${realname}/7z.sfx
+	# Fix odd permissions on bin when 7zG installed
+	chmod +w "${pkgdir}/usr/bin"
+
+	cd "${srcdir}"/${realname}_${pkgver}
+
+	install -m755 -D GUI/${realname}_32.png "${pkgdir}"/usr/share/icons/hicolor/32x32/apps/${realname}.png
+
+	# Desktop
+	install -d "${pkgdir}"/usr/share/applications/
+	cp "${startdir}"/7zFM.desktop "${pkgdir}"/usr/share/applications/
+
+	# KDE
+	install -d "${pkgdir}"/usr/share/kde4/services/ServiceMenus/
+	cp GUI/kde4/* "${pkgdir}"/usr/share/kde4/services/ServiceMenus/
+
+	# Help
+	find "GUI/help" -type d -exec chmod 755 {} ';'
+	find "GUI/help" -type f -exec chmod 644 {} ';'
+	cp -r GUI/help "${pkgdir}"/usr/lib/${realname}/
 }
 
-sha1sums=('81da0729561ce123c0a82656ec96a04ad5bfa522')
+sha1sums=('c976df4543ea946a65bc3f5e3d4e9baa417e5f12')
