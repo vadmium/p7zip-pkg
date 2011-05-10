@@ -3,14 +3,14 @@
 
 realname=p7zip
 pkgname=${realname}-gui
-pkgver=9.20
+pkgver=9.20.1
 pkgrel=1
 pkgdesc="The GUI component of the P7Zip compression utility"
 arch=("i686" "x86_64")
 license=("GPL")
 url="http://${realname}.sourceforge.net"
 depends=("wxgtk" "${realname}=${pkgver}")
-makedepends=("make" "yasm")
+makedepends=("make" "yasm" "nasm")
 optdepends=("j7z: An alternative 7-Zip GUI")
 options=(!emptydirs)
 source=(http://downloads.sourceforge.net/sourceforge/${realname}/${realname}_${pkgver}_src_all.tar.bz2)
@@ -58,4 +58,4 @@ package() {
 	cp -r GUI/help "${pkgdir}"/usr/lib/${realname}/
 }
 
-sha1sums=('c976df4543ea946a65bc3f5e3d4e9baa417e5f12')
+sha1sums=('1cd567e043ee054bf08244ce15f32cb3258306b7')
