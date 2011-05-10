@@ -3,14 +3,19 @@
 
 realname=p7zip
 pkgname=${realname}-gui
-pkgver=9.20
+pkgver=9.20.1
 pkgrel=1+vad0
 pkgdesc="The GUI component of the P7Zip compression utility"
 arch=("i686" "x86_64")
 license=("GPL")
 url="http://${realname}.sourceforge.net"
 depends=("wxgtk" "${realname}=${pkgver}")
+
 makedepends=("make" "yasm")
+if test "$CARCH" == i686; then
+	makedepends=("${makedepends[@]}" "nasm")
+fi
+
 optdepends=("j7z: An alternative 7-Zip GUI")
 options=(!emptydirs)
 source=(http://downloads.sourceforge.net/sourceforge/${realname}/${realname}_${pkgver}_src_all.tar.bz2)
@@ -31,7 +36,8 @@ package() {
 		DEST_MAN='$(DEST_HOME)/share/man'
 	
 	# Remove files belonging in the base package
-	rm "${pkgdir}/usr/lib/${realname}/7z.so"
+	cd "${pkgdir}/usr/lib/${realname}"
+	rm -r 7z.so Codecs
 	cd "${pkgdir}/usr/share/man/man1"
 	rm 7z.1 7za.1 7zr.1
 	
@@ -41,6 +47,7 @@ package() {
 	cd "${srcdir}"/${realname}_${pkgver}
 
 	install -m755 -D GUI/${realname}_32.png "${pkgdir}"/usr/share/icons/hicolor/32x32/apps/${realname}.png
+	ln -s /usr/lib/${realname}/7zCon.sfx "${pkgdir}"/usr/lib/${realname}/7z.sfx
 
 	# Desktop
 	install -d "${pkgdir}"/usr/share/applications/
@@ -56,4 +63,4 @@ package() {
 	cp -r GUI/help "${pkgdir}"/usr/lib/${realname}/
 }
 
-sha1sums=('c976df4543ea946a65bc3f5e3d4e9baa417e5f12')
+sha1sums=('1cd567e043ee054bf08244ce15f32cb3258306b7')
