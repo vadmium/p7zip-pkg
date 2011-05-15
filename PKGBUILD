@@ -7,12 +7,16 @@
 
 pkgname=p7zip
 pkgver=9.20.1
-pkgrel=1
+pkgrel=1+vad0
 pkgdesc='Command-line version of the 7zip compressed file archiver'
 arch=('i686' 'x86_64')
 license=('GPL')
 url='http://p7zip.sourceforge.net/'
-makedepends=('yasm' 'nasm')
+
+makedepends=('yasm')
+[[ "$CARCH" = i686 ]] \
+&& makedepends=("${makedepends[@]}" 'nasm')
+
 source=("http://downloads.sourceforge.net/sourceforge/${pkgname}/${pkgname}_${pkgver}_src_all.tar.bz2")
 sha1sums=('1cd567e043ee054bf08244ce15f32cb3258306b7')
 
@@ -22,7 +26,6 @@ build() {
 	[[ $CARCH = x86_64 ]] \
 	&& cp makefile.linux_amd64_asm makefile.machine \
 	|| cp makefile.linux_x86_asm_gcc_4.X makefile.machine
-	sed -i "s|usr/local|usr|g" makefile
 
 	make all3 OPTFLAGS="${CXXFLAGS}"
 }
@@ -31,10 +34,9 @@ package() {
 	cd "${srcdir}/${pkgname}_${pkgver}"
 
 	make install \
-		DEST_HOME="${pkgdir}/usr" \
-		DEST_MAN="${pkgdir}/usr/share/man" \
-		DEST_SHARE_DOC="http://www.bugaco.com/7zip"
+		DEST_DIR="${pkgdir}" \
+		DEST_HOME="/usr" \
+		DEST_MAN="/usr/share/man"
 
-	sed "s|${pkgdir}/usr|/usr|g" -i "${pkgdir}"/usr/bin/7z{,a,r}
 	install -Dm755 contrib/VirtualFileSystemForMidnightCommander/u7z "${pkgdir}"/usr/lib/mc/extfs.d/u7z
 }
