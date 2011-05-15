@@ -1,10 +1,9 @@
-# P7Zip-GUI: Installer: Arch
 # Contributor: Xavion <Xavion (dot) 0 (at) Gmail (dot) com>
 
 realname=p7zip
 pkgname=${realname}-gui
 pkgver=9.20.1
-pkgrel=1+vad0
+pkgrel=2+vad0
 pkgdesc="The GUI component of the P7Zip compression utility"
 arch=("i686" "x86_64")
 license=("GPL")
@@ -12,9 +11,8 @@ url="http://${realname}.sourceforge.net"
 depends=("wxgtk" "${realname}=${pkgver}")
 
 makedepends=("make" "yasm")
-if test "$CARCH" == i686; then
-	makedepends=("${makedepends[@]}" "nasm")
-fi
+[[ "$CARCH" = i686 ]] \
+&& makedepends=("${makedepends[@]}" "nasm")
 
 optdepends=("j7z: An alternative 7-Zip GUI")
 options=(!emptydirs)
@@ -40,6 +38,7 @@ package() {
 	rm -r 7z.so Codecs
 	cd "${pkgdir}/usr/share/man/man1"
 	rm 7z.1 7za.1 7zr.1
+	rm -r "${pkgdir}/usr/share/doc/${realname}"
 	
 	# Fix odd permissions on bin when 7zG installed
 	chmod +w "${pkgdir}/usr/bin"
