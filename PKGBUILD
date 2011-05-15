@@ -1,10 +1,9 @@
-# P7Zip-GUI: Installer: Arch
 # Contributor: Xavion <Xavion (dot) 0 (at) Gmail (dot) com>
 
 realname=p7zip
 pkgname=${realname}-gui
 pkgver=9.20.1
-pkgrel=1
+pkgrel=2
 pkgdesc="The GUI component of the P7Zip compression utility"
 arch=("i686" "x86_64")
 license=("GPL")
@@ -27,15 +26,21 @@ build() {
 }
 
 package() {
+	make -C "${srcdir}/${realname}_${pkgver}" install \
+		DEST_HOME=/usr DEST_DIR="${pkgdir}" \
+		DEST_MAN='$(DEST_HOME)/share/man'
+	
+	# Remove files belonging in the base package
+	cd "${pkgdir}/usr/lib/${realname}"
+	rm -r 7z.so Codecs
+	cd "${pkgdir}/usr/share/man/man1"
+	rm 7z.1 7za.1 7zr.1
+	
+	# Fix odd permissions on bin when 7zG installed
+	chmod +w "${pkgdir}/usr/bin"
+
 	cd "${srcdir}"/${realname}_${pkgver}
 
-	install -m755 -D bin/7zG "${pkgdir}"/usr/lib/${realname}/7zG
-	install -m755 -D bin/7zFM "${pkgdir}"/usr/lib/${realname}/7zFM
-
-	install -d "${pkgdir}"/usr/bin/
-	cp "${startdir}"/7z{FM,G} "${pkgdir}"/usr/bin/
-
-	install -m755 -D GUI/${realname}ForFilemanager "${pkgdir}"/usr/bin/${realname}ForFilemanager
 	install -m755 -D GUI/${realname}_32.png "${pkgdir}"/usr/share/icons/hicolor/32x32/apps/${realname}.png
 	ln -s /usr/lib/${realname}/7zCon.sfx "${pkgdir}"/usr/lib/${realname}/7z.sfx
 
@@ -46,11 +51,6 @@ package() {
 	# KDE
 	install -d "${pkgdir}"/usr/share/kde4/services/ServiceMenus/
 	cp GUI/kde4/* "${pkgdir}"/usr/share/kde4/services/ServiceMenus/
-
-	# Language
-	find "GUI/Lang" -type d -exec chmod 755 {} ';'
-	find "GUI/Lang" -type f -exec chmod 644 {} ';'
-	cp -r GUI/Lang "${pkgdir}"/usr/lib/${realname}/
 
 	# Help
 	find "GUI/help" -type d -exec chmod 755 {} ';'
